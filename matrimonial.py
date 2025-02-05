@@ -38,9 +38,9 @@ st.markdown("# All Users")
 st.table(df)
 
         
-"""
-1. fetch data from db
-2. convert dictionary into dataframe and pass to interface.
-"""
+# """
+# 1. fetch data from db
+# 2. convert dictionary into dataframe and pass to interface.
+# """
 
 

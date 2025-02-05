@@ -50,9 +50,6 @@ with st.form("my_form"):
 
         # convert to Dataframe
         df = pd.DataFrame(data)
-
-        # save to excel
-        df.to_csv("data/users_data.csv",index=False)
         st.success("Add form submitted successfully.")
         
 """

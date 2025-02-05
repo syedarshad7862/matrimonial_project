@@ -15,9 +15,9 @@ st.title("Match Your Partner")
 # def load_data():
 #     return pd.read_csv("data/users_data.csv")
 
-MONGODB_URI = st.secrets["MONGODB_URI"]
+# MONGODB_URI = st.secrets["MONGODB_URI"]
 # function help in load from db and create vectors
-df,data, texts = create_vector(MONGODB_URI)
+df,data, texts = create_vector()
 # # convert to Dataframe
 # df = pd.DataFrame(data)
 
