@@ -19,7 +19,7 @@ connect = MongoClient('mongodb://localhost:27017/')
 # database name
 db = connect["matrimonial"]
 
-# collection name
+# collection name or table
 collection = db['users']
 
 # fetch data from Mongodb
@@ -29,7 +29,7 @@ data = list(collection.find({}, {"_id":0}))
 df = pd.DataFrame(data)
 
 # save to excel
-df.to_csv("data/users_data.csv",index=False)
+# df.to_csv("data/users_data.csv",index=False)
 
 st.title("WelCome to Matrimonial AI Web App")
 

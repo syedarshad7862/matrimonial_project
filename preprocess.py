@@ -4,40 +4,52 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 import os
-
+from pymongo import MongoClient
 # Load data
-df = pd.read_csv("data/users_data.csv")
+# df = pd.read_csv("data/users_data.csv")
 
-# Combine relevant columns for embeddings (e.g., gender + age + education + profession + location)
-# df["text"] = df["age"] + " " + df["gender"] + " " + df['education'] + " " + df['profession'] +" "+ df['location'] # Combine Film and Genre for richer context
-# df["text"] = df['name']+ ' ' + df["education"] + " " + df["profession"] + " " + df['loaction'] # Combine Film and Genre for richer context
-# texts = df["text"].tolist()
+def create_vector(mongodb_uri='mongodb://localhost:27017/',db_name="matrimonial",collection_name="users"):
+    connect = MongoClient(mongodb_uri)
+    # database name
+    db = connect[db_name]
 
-# Fill missing values with an empty string or placeholder
-df.fillna("unknown", inplace=True)
+    # collection name or table
+    collection = db[collection_name]
 
-# Combine columns into a single text column
-df["text"] = (
-    df["name"].astype(str) + " " +
-    df["age"].astype(str) + " " +
-    df["education"].astype(str) + " " +
-    df["profession"].astype(str) + " " +
-    df["location"].astype(str)
-)
+    # fetch data from Mongodb
+    data = list(collection.find({}, {"_id":0}))
 
-# Convert the combined text to a list
-texts = df["text"].tolist()
+    # convert to Dataframe
+    df = pd.DataFrame(data)
+
+    # Fill missing values with an empty string or placeholder
+    df.fillna("unknown", inplace=True)
+
+    # Combine columns into a single text column
+    df["text"] = (
+        df["name"].astype(str) + " " +
+        df["age"].astype(str) + " " +
+        df["education"].astype(str) + " " +
+        df["profession"].astype(str) + " " +
+        df["location"].astype(str)
+    )
+
+    # Convert the combined text to a list
+    texts = df["text"].tolist()
+    
+    return df,data, texts
 
 # Generate embeddings
-model = SentenceTransformer("all-MiniLM-L6-v2")
-embeddings = model.encode(texts, show_progress_bar=True)
+def generate_embeddings(texts):
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embeddings = model.encode(texts, show_progress_bar=True)
 
-# Create FAISS index
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(np.array(embeddings).astype("float32"))
+    # Create FAISS index
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(np.array(embeddings).astype("float32"))
 
-# Save index
-os.makedirs("vectorstore", exist_ok=True)
-faiss.write_index(index, "vectorstore/index.faiss")
-print("Vector store created and saved!")
+    # Save index
+    os.makedirs("vectorstore", exist_ok=True)
+    faiss.write_index(index, "vectorstore/index.faiss")
+    print("Vector store created and saved!")
