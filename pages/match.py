@@ -16,6 +16,7 @@ st.title("Match Your Partner")
 #     return pd.read_csv("data/users_data.csv")
 
 MONGO_URI = st.secrets["mongo"]["uri"]
+# st.write("MongoDB URI:", st.secrets["mongo"]["uri"])  # Check if secret is accessible
 # function help in load from db and create vectors
 df,data, texts = create_vector(MONGO_URI)
 # # convert to Dataframe

@@ -5,9 +5,11 @@ import pandas as pd
 from sentence_transformers import SentenceTransformer
 # Store and search vector embeddings.
 import faiss
+# import the preprocess file
+from preprocess import create_vector
 
-
-connect = MongoClient('mongodb://localhost:27017/')
+MONGO_URI = st.secrets["mongo"]["uri"]
+connect = MongoClient(MONGO_URI)
 # database name
 db = connect["matrimonial"]
 

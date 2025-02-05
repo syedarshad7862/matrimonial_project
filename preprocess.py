@@ -8,7 +8,7 @@ from pymongo import MongoClient
 # Load data
 # df = pd.read_csv("data/users_data.csv")
 
-def create_vector(mongodb_uri='mongodb://localhost:27017/',db_name="matrimonial",collection_name="users"):
+def create_vector(mongodb_uri,db_name="matrimonial",collection_name="users"):
     connect = MongoClient(mongodb_uri)
     # database name
     db = connect[db_name]

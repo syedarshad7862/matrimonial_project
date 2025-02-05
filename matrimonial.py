@@ -14,8 +14,8 @@ st.set_page_config(page_title="Matrimonial", page_icon=":material/edit:")
 # about = st.Page("pages/3_About.py", title="About App", icon=":material/delete:")
 
 # pg = st.navigation([upload, search])
-
-connect = MongoClient('mongodb://localhost:27017/')
+MONGO_URI = st.secrets["mongo"]["uri"]
+connect = MongoClient(MONGO_URI)
 # database name
 db = connect["matrimonial"]
 
