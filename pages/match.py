@@ -16,7 +16,7 @@ st.title("Match Your Partner")
 #     return pd.read_csv("data/users_data.csv")
 
 MONGO_URI = st.secrets["mongo"]["uri"]
-# st.write("MongoDB URI:", st.secrets["mongo"]["uri"])  # Check if secret is accessible
+
 # function help in load from db and create vectors
 df,data, texts = create_vector(MONGO_URI)
 # # convert to Dataframe
@@ -28,7 +28,12 @@ generate_embeddings(texts)
 # Load FAISS index
 @st.cache_resource
 def load_index():
-    return faiss.read_index("vectorstore/index.faiss")
+    try:
+        index = faiss.read_index("vectorstore/index.faiss")
+        return index
+    except Exception as e:
+        st.error(f"Error loading FAISS index: {e}")
+        return None
 
 index = load_index()
 
@@ -48,6 +53,10 @@ def search(query: str, top_k: int = 5):
 
 def search_similar_profiles(df,selected_user, top_k=5):
     """Find similar profiles based on FAISS similarity search."""
+    
+        # Clear cache to prevent duplicate search results
+    st.cache_data.clear()
+    
     user_index = df[df["name"] == selected_user].index[0]
     
     # Encode selected user's text into an embedding
