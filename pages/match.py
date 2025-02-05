@@ -15,7 +15,7 @@ st.title("Match Your Partner")
 # def load_data():
 #     return pd.read_csv("data/users_data.csv")
 
-mongodb_uri = 'mongodb+srv://arshadraza:arshad7862@cluster0.lrpglgh.mongodb.net/'
+
 # function help in load from db and create vectors
 df,data, texts = create_vector()
 # # convert to Dataframe
