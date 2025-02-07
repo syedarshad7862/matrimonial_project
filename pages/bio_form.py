@@ -21,7 +21,7 @@ data = list(collection.find({}, {"_id":0}))
 
 st.markdown("## Enter Your Details")
 users = {}
-with st.form("my_form"):
+with st.form("my_form",clear_on_submit=True):
     name = st.text_input("Enter Your Name:")
     age = st.text_input("Enter Your Age:")
     gender = st.selectbox("Select Your Gender:",["Male","Female"])
@@ -54,12 +54,7 @@ with st.form("my_form"):
         df = pd.DataFrame(data)
         st.success("Add form submitted successfully.")
         
-"""
-1. only save data in db.
-2. no csv
-"""
-            
-# fetch data from mongodb
-data = list()
-
-print(users)
+# """
+# 1. only save data in db.
+# 2. no csv
+# """

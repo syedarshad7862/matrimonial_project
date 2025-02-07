@@ -75,31 +75,32 @@ def search_similar_profiles(df,selected_user, top_k=5):
     ]
     
     # Convert selected users into a DataFrame
-    similar_df = df.iloc[similar_profiles].copy()
+    # similar_df = df.iloc[similar_profiles].copy()
 
     # Convert ages to integer for comparison
-    similar_df["age"] = similar_df["age"].astype(int)
+    # similar_df["age"] = similar_df["age"].astype(int)
 
-    # **Age-Based Matching Logic**
-    if selected_gender == "Male":
-        # Male users: Prefer younger or same age females, else go for older ones
-        filtered_df = similar_df[similar_df["age"] <= selected_age]
-        if filtered_df.empty:
-            filtered_df = similar_df[similar_df["age"] > selected_age]
+    # # **Age-Based Matching Logic**
+    # if selected_gender == "Male":
+    #     # Male users: Prefer younger or same age females, else go for older ones
+    #     filtered_df = similar_df[similar_df["age"] <= selected_age]
+    #     if filtered_df.empty:
+    #         filtered_df = similar_df[similar_df["age"] > selected_age]
 
-    else:  # Female users
-        # Female users: Prefer older males, else go for younger ones
-        filtered_df = similar_df[similar_df["age"] > selected_age]
-        if filtered_df.empty:
-            filtered_df = similar_df[similar_df["age"] <= selected_age]
+    # else:  # Female users
+    #     # Female users: Prefer older males, else go for younger ones
+    #     filtered_df = similar_df[similar_df["age"] > selected_age]
+    #     if filtered_df.empty:
+    #         filtered_df = similar_df[similar_df["age"] <= selected_age]
 
     # Step 3: Sort by age (ascending for males, descending for females)
-    if selected_gender == "Male":
-        filtered_df = filtered_df.sort_values(by="age", ascending=True)  # Younger first
-    else:
-        filtered_df = filtered_df.sort_values(by="age", ascending=False)  # Older first
+    # if selected_gender == "Male":
+    #     filtered_df = filtered_df.sort_values(by="age", ascending=True)  # Younger first
+    # else:
+    #     filtered_df = filtered_df.sort_values(by="age", ascending=False)  # Older first
 
-    return filtered_df.head(top_k)  # Return top_k matches
+    # return filtered_df.head(top_k)  # Return top_k matches
+    return df.iloc[similar_profiles]  # Return top_k matches
 
 # User input
 query = st.sidebar.selectbox('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
