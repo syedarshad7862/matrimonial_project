@@ -8,7 +8,7 @@ import pdb
 # import the preprocess file
 from preprocess import create_vector,generate_embeddings
 # Import the card module
-from streamlit_card import card # type: ignore
+# from streamlit_card import card # type: ignore
 st.title("Match Your Partner")
 
 

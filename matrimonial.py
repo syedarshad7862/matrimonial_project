@@ -35,7 +35,7 @@ st.title("WelCome to Matrimonial AI Web App")
 
 st.markdown("# All Users")
 
-st.table(df)
+st.dataframe(df)
 
         
 # """
