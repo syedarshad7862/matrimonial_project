@@ -3,3 +3,4 @@ data/
 vectorstore/
 .streamlit/
 *.jpg
+file_watch.py

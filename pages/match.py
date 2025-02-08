@@ -7,7 +7,8 @@ from sentence_transformers import SentenceTransformer
 import pdb
 # import the preprocess file
 from preprocess import create_vector,generate_embeddings
-
+# Import the card module
+from streamlit_card import card # type: ignore
 st.title("Match Your Partner")
 
 
@@ -19,6 +20,7 @@ MONGO_URI = st.secrets["mongo"]["uri"]
 
 # function help in load from db and create vectors
 df,data, texts = create_vector(MONGO_URI)
+new_df =  pd.DataFrame(data)
 # # convert to Dataframe
 # df = pd.DataFrame(data)
 
@@ -56,7 +58,6 @@ def search_similar_profiles(df,selected_user, top_k=5):
     
         # Clear cache to prevent duplicate search results
     st.cache_data.clear()
-    
     user_index = df[df["name"] == selected_user].index[0]
     
     # Encode selected user's text into an embedding
@@ -103,42 +104,121 @@ def search_similar_profiles(df,selected_user, top_k=5):
     return df.iloc[similar_profiles]  # Return top_k matches
 
 # User input
-query = st.sidebar.selectbox('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
+# query = st.sidebar.selectbox('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
 
+multi = st.sidebar.multiselect('Filter', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
+# Button to trigger search
+if st.sidebar.button("Find Matches"):
+    if multi:
+        query_text = " ".join(multi)  # Combine selected filters into a single query string
+        indices, distances = search(query_text)
+
+        # Display Matching Results
+        # st.write("### Top Matching Profiles:")
+        # for idx, distance in zip(indices, distances):
+            # if idx < len(df):  # Prevent index errors
+            #     st.write(f"**Name:** {df.iloc[idx]['name']}")
+            #     st.write(f"**Age:** {df.iloc[idx]['age']}")
+            #     st.write(f"**Education:** {df.iloc[idx]['education']}")
+            #     st.write(f"**Profession:** {df.iloc[idx]['profession']}")
+            #     st.write(f"**Location:** {df.iloc[idx]['location']}")
+            #     st.write("---")
+        matched_profiles = []
+        for idx, distance in zip(indices, distances):
+            if idx < len(new_df):  # Prevent index errors
+                matched_profiles.append(new_df.iloc[idx])
+
+        # Convert matched profiles into a DataFrame
+        if matched_profiles:
+            st.write("### Top Matching Profiles:")
+            result_df = pd.DataFrame(matched_profiles)
+            result_df.columns = ["Name", "Age", "Gender","Education","Profession","Location","Preference","texts"]
+            # st.dataframe(result_df)  # Display as a DataFrame
+            st.markdown(result_df.to_html(index=False, escape=False), unsafe_allow_html=True)
+        else:
+            st.warning("No matching profiles found.")
+    else:
+        st.warning("Please select at least one filter!")
+
+
+# Custom CSS for cards
+card_style = """
+<style>
+.card {
+    background-color: #ffffff;  /* White background */
+    border-radius: 10px;       /* Rounded corners */
+    padding: 20px;             /* Padding inside the card */
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+    margin-bottom: 20px;       /* Space between cards */
+    color: #333;               /* Dark text color */
+    font-size: 16px;           /* Text size */
+    max-width: 500px;           /* Ensure card doesn't overflow */
+    width: 100%;               /* Full width by default */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+    text-align: center;
+}
+
+/* Card hover effect */
+.card:hover {
+    transform: translateY(-5px); /* Slight lift on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+}
+
+/* Card title styling */
+.card-title {
+    color: #e91e63;            /* Pink color for title (matrimonial theme) */
+    font-size: 24px;           /* Larger font size for title */
+    font-weight: bold;         /* Bold title */
+    margin-bottom: 15px;       /* Space below title */
+    text-align: center;        /* Center-align title */
+}
+</style>
+"""
+
+# Inject custom CSS
+st.markdown(card_style, unsafe_allow_html=True)
+
+
+# Main app logic
 if df.empty:
     st.error("No user data found.")
 else:
     # User dropdown for selecting profiles
-    selected_user = st.sidebar.selectbox("Select a User Profile", df["name"])
-        # Display selected user profile
+    selected_user = st.sidebar.selectbox("Select a User Profile", new_df["name"])
+    top_k = st.sidebar.number_input("Top",5,30)
+    print(top_k,type(top_k))
+    # Display selected user profile
     user_profile = df[df["name"] == selected_user].iloc[0]
     st.write("### Selected User Profile:")
     st.dataframe(user_profile)
-    
-    if selected_user:
-       similar_profiles = search_similar_profiles(df, selected_user)
-    # pdb.set_trace()
-    if not similar_profiles.empty:
-        st.write("### Matching Profiles:")
-        st.table(similar_profiles)  # Display results in tabular format
-    else:
-        st.write("No suitable matches found.")
+
+    if st.sidebar.button("Show Profile"):
+        similar_profiles = search_similar_profiles(df, selected_user,top_k)
+
+        if not similar_profiles.empty:
+            st.write("### Matching Profiles:")
+            for _, profile in similar_profiles.iterrows():
+                # Create a card for each profile
+                card_content = f"""
+                <div class="card">
+                <div class="card-title">{profile["name"]}</div>
+                <div class="card-content">
+                    <div><strong>Age:</strong> {profile["age"]}</div>
+                    <div><strong>Gender:</strong> {profile["gender"]}</div>
+                    <div><strong>Education:</strong> {profile["education"]}</div>
+                    <div><strong>Profession:</strong> {profile["profession"]}</div>
+                    <div><strong>Location:</strong> {profile["location"]}</div>
+                    <div><strong>Preference:</strong> {profile["preference"]}</div>
+                </div>
+                </div>
+                """
+                st.markdown(card_content, unsafe_allow_html=True)
+        else:
+            st.write("No suitable matches found.")
 
 
 # query = st.sidebar.multiselect('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"25"] )
 
-
-if query:
-    indices, distances = search(query)
-    st.write("Top Results:")
-    for idx, distance in zip(indices, distances):
-        st.write(f"**Name:** {df.iloc[idx]['name']}")
-        st.write(f"**Age:** {df.iloc[idx]['age']}")
-        st.write(f"**Education:** {df.iloc[idx]['education']}")
-        st.write(f"**Profession:** {df.iloc[idx]['profession']}")
-        st.write(f"**Location:** {df.iloc[idx]['location']}")
-        # st.write(f"**Distance:** {distance}")
-        st.write("---")
 
 # """
 # 1. remove preprocess file and convert into module or function.

@@ -26,12 +26,19 @@ def create_vector(mongodb_uri,db_name="matrimonial",collection_name="users"):
     df.fillna("unknown", inplace=True)
 
     # Combine columns into a single text column
+    # df["text"] = (
+    #     df["name"].astype(str) + " " +
+    #     df["age"].astype(str) + " " +
+    #     df["education"].astype(str) + " " +
+    #     df["profession"].astype(str) + " " +
+    #     df["location"].astype(str)
+    # )
     df["text"] = (
-        df["name"].astype(str) + " " +
         df["age"].astype(str) + " " +
         df["education"].astype(str) + " " +
         df["profession"].astype(str) + " " +
-        df["location"].astype(str)
+        df["location"].astype(str) + " " +
+        df["preference"].astype(str)
     )
 
     # Convert the combined text to a list
