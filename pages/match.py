@@ -103,43 +103,104 @@ def search_similar_profiles(df,selected_user, top_k=5):
     # return filtered_df.head(top_k)  # Return top_k matches
     return df.iloc[similar_profiles]  # Return top_k matches
 
-# User input
-# query = st.sidebar.selectbox('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
 
-multi = st.sidebar.multiselect('Filter', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"18","25"] )
+# using pandas and faiss
+# multi = st.sidebar.multiselect(
+#     'Filter', ['Graduate', 'Under Graduate', 'Student', 'Saudi Arabia', '19', "18", "25"]
+# )
+# Button to trigger search
+# if st.sidebar.button("Find Matches"):
+#     if multi:
+#         # Convert multi-selection values to proper data types
+#         age_filters = [int(x) for x in multi if x.isdigit()]  # Extract age filters
+#         other_filters = [x.lower() for x in multi if not x.isdigit()]  # Extract non-age filters
+
+#         # Step 1: Apply FAISS Search (Semantic Matching)
+#         query_text = " ".join(multi)
+#         indices, distances = search(query_text)
+
+#         matched_profiles = [new_df.iloc[idx] for idx in indices if idx < len(new_df)]
+#         result_df = pd.DataFrame(matched_profiles)
+
+#         # Step 2: Apply Pandas Filtering
+#         if not result_df.empty:
+#             # Ensure column names match exactly as per your DataFrame
+#             filter_conditions = pd.Series(True, index=result_df.index)
+
+#             # Age filtering
+#             if age_filters:
+#                 filter_conditions &= result_df["age"].astype(int).isin(age_filters)
+
+#             # Other filters (education, profession, location, preference)
+#             for filter_value in other_filters:
+#                 mask = result_df.apply(
+#                     lambda row: any(filter_value in str(row[col]).lower().strip() for col in ["education", "profession", "location", "preference"]),
+#                     axis=1
+#                 )
+#                 filter_conditions &= mask
+
+#             # Apply the final filter
+#             result_df = result_df[filter_conditions]
+
+#         # Display results
+#         if not result_df.empty:
+#             st.write("### Top Matching Profiles:")
+#             result_df.columns = ["Name", "Age", "Gender", "Education", "Profession", "Location", "Preference", "texts"]
+#             st.markdown(result_df.to_html(index=False, escape=False), unsafe_allow_html=True)
+#         else:
+#             st.warning("No matching profiles found.")
+#     else:
+#         st.warning("Please select at least one filter!")
+
+
+# filter using pandas
+multi = st.sidebar.multiselect(
+    'Filter', ['Graduate', 'Under Graduate', 'Student', 'Saudi Arabia', '19', "18", "25"]
+)
+
 # Button to trigger search
 if st.sidebar.button("Find Matches"):
     if multi:
-        query_text = " ".join(multi)  # Combine selected filters into a single query string
-        indices, distances = search(query_text)
+        # Convert filters to appropriate types
+        age_filters = [int(x) for x in multi if x.isdigit()]  # Extract numeric age filters
+        other_filters = [x.lower().strip() for x in multi if not x.isdigit()]  # Extract non-numeric filters
 
-        # Display Matching Results
-        # st.write("### Top Matching Profiles:")
-        # for idx, distance in zip(indices, distances):
-            # if idx < len(df):  # Prevent index errors
-            #     st.write(f"**Name:** {df.iloc[idx]['name']}")
-            #     st.write(f"**Age:** {df.iloc[idx]['age']}")
-            #     st.write(f"**Education:** {df.iloc[idx]['education']}")
-            #     st.write(f"**Profession:** {df.iloc[idx]['profession']}")
-            #     st.write(f"**Location:** {df.iloc[idx]['location']}")
-            #     st.write("---")
-        matched_profiles = []
-        for idx, distance in zip(indices, distances):
-            if idx < len(new_df):  # Prevent index errors
-                matched_profiles.append(new_df.iloc[idx])
+        # Copy the dataframe for filtering
+        filtered_df = new_df.copy()
 
-        # Convert matched profiles into a DataFrame
-        if matched_profiles:
+        # **Age Filtering**
+        if age_filters:
+            filtered_df = filtered_df[filtered_df["age"].astype(int).isin(age_filters)]
+
+        # **Other Filters (education, profession, location, preference)**
+        # if other_filters:
+        #     mask = filtered_df.apply(
+        #         lambda row: any(
+        #             filter_value in str(row[col]).lower().strip()
+        #             for col in ["education", "profession", "location", "preference"]
+        #             for filter_value in other_filters
+        #         ),
+        #         axis=1
+        #     )
+        #     filtered_df = filtered_df[mask]
+        if other_filters:
+            for filter_value in other_filters:
+                filtered_df = filtered_df[
+                    (filtered_df["education"].str.lower().str.strip() == filter_value) |
+                    (filtered_df["profession"].str.lower().str.strip() == filter_value) |
+                    (filtered_df["location"].str.lower().str.strip() == filter_value) |
+                    (filtered_df["preference"].str.lower().str.strip() == filter_value)
+                ]
+
+        # Display Results
+        if not filtered_df.empty:
             st.write("### Top Matching Profiles:")
-            result_df = pd.DataFrame(matched_profiles)
-            result_df.columns = ["Name", "Age", "Gender","Education","Profession","Location","Preference","texts"]
-            # st.dataframe(result_df)  # Display as a DataFrame
-            st.markdown(result_df.to_html(index=False, escape=False), unsafe_allow_html=True)
+            filtered_df.columns = ["Name", "Age", "Gender", "Education", "Profession", "Location", "Preference", "texts"]
+            st.markdown(filtered_df.to_html(index=False, escape=False), unsafe_allow_html=True)
         else:
             st.warning("No matching profiles found.")
     else:
         st.warning("Please select at least one filter!")
-
 
 # Custom CSS for cards
 card_style = """
@@ -155,7 +216,6 @@ card_style = """
     max-width: 500px;           /* Ensure card doesn't overflow */
     width: 100%;               /* Full width by default */
     transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
-    text-align: center;
 }
 
 /* Card hover effect */
@@ -183,14 +243,22 @@ st.markdown(card_style, unsafe_allow_html=True)
 if df.empty:
     st.error("No user data found.")
 else:
+    options = ["Select a user"] + new_df["name"].tolist()
     # User dropdown for selecting profiles
-    selected_user = st.sidebar.selectbox("Select a User Profile", new_df["name"])
+    selected_user = st.sidebar.selectbox("Select a User Profile", options)
+    print(options)
     top_k = st.sidebar.number_input("Top",5,30)
-    print(top_k,type(top_k))
     # Display selected user profile
-    user_profile = df[df["name"] == selected_user].iloc[0]
-    st.write("### Selected User Profile:")
-    st.dataframe(user_profile)
+    # user_profile = df[df["name"] == selected_user].iloc[0]
+    # st.write("### Selected User Profile:")
+    # st.dataframe(user_profile)
+    if selected_user != "Select a user":
+        # Run your search logic
+        user_profile = df[df["name"] == selected_user].iloc[0]
+        st.write("### Selected User Profile:")
+        st.dataframe(user_profile)
+    else:
+        st.warning("Please select a user to find matches.")
 
     if st.sidebar.button("Show Profile"):
         similar_profiles = search_similar_profiles(df, selected_user,top_k)
