@@ -247,7 +247,6 @@ else:
     # User dropdown for selecting profiles
     selected_user = st.sidebar.selectbox("Select a User Profile", options)
     print(options)
-    top_k = st.sidebar.number_input("Top",5,30)
     # Display selected user profile
     # user_profile = df[df["name"] == selected_user].iloc[0]
     # st.write("### Selected User Profile:")
@@ -275,28 +274,34 @@ else:
         st.warning("Please select a user to find matches.")
 
     if st.sidebar.button("Show Profile"):
-        similar_profiles = search_similar_profiles(df, selected_user,top_k)
-
-        if not similar_profiles.empty:
-            st.write("### Matching Profiles:")
-            for _, profile in similar_profiles.iterrows():
-                # Create a card for each profile
-                card_content = f"""
-                <div class="card">
-                <div class="card-title">{profile["name"]}</div>
-                <div class="card-content">
-                    <div><strong>Age:</strong> {profile["age"]}</div>
-                    <div><strong>Gender:</strong> {profile["gender"]}</div>
-                    <div><strong>Education:</strong> {profile["education"]}</div>
-                    <div><strong>Profession:</strong> {profile["profession"]}</div>
-                    <div><strong>Location:</strong> {profile["location"]}</div>
-                    <div><strong>Preference:</strong> {profile["preference"]}</div>
-                </div>
-                </div>
-                """
-                st.markdown(card_content, unsafe_allow_html=True)
+        
+        top_k = st.sidebar.number_input("Top",5,30)
+        if selected_user == "Select a user":
+            st.error("Please Select a username to proceed.")
         else:
-            st.write("No suitable matches found.")
+                
+            similar_profiles = search_similar_profiles(df, selected_user,top_k)
+
+            if not similar_profiles.empty:
+                st.write("### Matching Profiles:")
+                for _, profile in similar_profiles.iterrows():
+                    # Create a card for each profile
+                    card_content = f"""
+                    <div class="card">
+                    <div class="card-title">{profile["name"]}</div>
+                    <div class="card-content">
+                        <div><strong>Age:</strong> {profile["age"]}</div>
+                        <div><strong>Gender:</strong> {profile["gender"]}</div>
+                        <div><strong>Education:</strong> {profile["education"]}</div>
+                        <div><strong>Profession:</strong> {profile["profession"]}</div>
+                        <div><strong>Location:</strong> {profile["location"]}</div>
+                        <div><strong>Preference:</strong> {profile["preference"]}</div>
+                    </div>
+                    </div>
+                    """
+                    st.markdown(card_content, unsafe_allow_html=True)
+            else:
+                st.write("No suitable matches found.")
 
 
 # query = st.sidebar.multiselect('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"25"] )
