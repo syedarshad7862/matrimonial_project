@@ -247,6 +247,7 @@ else:
     # User dropdown for selecting profiles
     selected_user = st.sidebar.selectbox("Select a User Profile", options)
     print(options)
+    top_k = st.sidebar.number_input("Top",5,30)
     # Display selected user profile
     # user_profile = df[df["name"] == selected_user].iloc[0]
     # st.write("### Selected User Profile:")
@@ -275,7 +276,6 @@ else:
 
     if st.sidebar.button("Show Profile"):
         
-        top_k = st.sidebar.number_input("Top",5,30)
         if selected_user == "Select a user":
             st.error("Please Select a username to proceed.")
         else:
