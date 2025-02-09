@@ -155,7 +155,7 @@ def search_similar_profiles(df,selected_user, top_k=5):
 
 # filter using pandas
 multi = st.sidebar.multiselect(
-    'Filter', ['Graduate', 'Under Graduate', 'Student', 'Saudi Arabia', '19', "18", "25"]
+    'Filter', ['Graduate', 'Under Graduate', 'Student',"Doctor", 'Saudi Arabia',"India", "19","22","26"]
 )
 
 # Button to trigger search
@@ -256,7 +256,21 @@ else:
         # Run your search logic
         user_profile = df[df["name"] == selected_user].iloc[0]
         st.write("### Selected User Profile:")
-        st.dataframe(user_profile)
+        # st.dataframe(user_profile)
+        selected_profile = f"""
+                <div class="card">
+                <div class="card-title" style='color:red'>{user_profile["name"]}</div>
+                <div class="card-content">
+                    <div><strong>Age:</strong> {user_profile["age"]}</div>
+                    <div><strong>Gender:</strong> {user_profile["gender"]}</div>
+                    <div><strong>Education:</strong> {user_profile["education"]}</div>
+                    <div><strong>Profession:</strong> {user_profile["profession"]}</div>
+                    <div><strong>Location:</strong> {user_profile["location"]}</div>
+                    <div><strong>Preference:</strong> {user_profile["preference"]}</div>
+                </div>
+                </div>
+                """
+        st.markdown(selected_profile, unsafe_allow_html=True)
     else:
         st.warning("Please select a user to find matches.")
 
