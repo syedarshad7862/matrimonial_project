@@ -155,7 +155,7 @@ def search_similar_profiles(df,selected_user, top_k=5):
 
 # filter using pandas
 multi = st.sidebar.multiselect(
-    'Filter', ['Graduate', 'Under Graduate', 'Student',"Doctor", 'Saudi Arabia',"India", "19","22","26"]
+    'Filter', ['Graduate', 'Under Graduate', 'Student',"Doctor","Employee", 'Saudi Arabia',"India", "19","22","26"]
 )
 
 # Button to trigger search
@@ -274,34 +274,34 @@ else:
     else:
         st.warning("Please select a user to find matches.")
 
-    if st.sidebar.button("Show Profile"):
-        
-        if selected_user == "Select a user":
-            st.error("Please Select a username to proceed.")
-        else:
-                
-            similar_profiles = search_similar_profiles(df, selected_user,top_k)
+if st.sidebar.button("Show Profile"):
+    
+    if selected_user == "Select a user":
+        st.error("Please Select a username to proceed.")
+    else:
+            
+        similar_profiles = search_similar_profiles(df, selected_user,top_k)
 
-            if not similar_profiles.empty:
-                st.write("### Matching Profiles:")
-                for _, profile in similar_profiles.iterrows():
-                    # Create a card for each profile
-                    card_content = f"""
-                    <div class="card">
-                    <div class="card-title">{profile["name"]}</div>
-                    <div class="card-content">
-                        <div><strong>Age:</strong> {profile["age"]}</div>
-                        <div><strong>Gender:</strong> {profile["gender"]}</div>
-                        <div><strong>Education:</strong> {profile["education"]}</div>
-                        <div><strong>Profession:</strong> {profile["profession"]}</div>
-                        <div><strong>Location:</strong> {profile["location"]}</div>
-                        <div><strong>Preference:</strong> {profile["preference"]}</div>
-                    </div>
-                    </div>
-                    """
-                    st.markdown(card_content, unsafe_allow_html=True)
-            else:
-                st.write("No suitable matches found.")
+        if not similar_profiles.empty:
+            st.write("### Matching Profiles:")
+            for _, profile in similar_profiles.iterrows():
+                # Create a card for each profile
+                card_content = f"""
+                <div class="card">
+                <div class="card-title">{profile["name"]}</div>
+                <div class="card-content">
+                    <div><strong>Age:</strong> {profile["age"]}</div>
+                    <div><strong>Gender:</strong> {profile["gender"]}</div>
+                    <div><strong>Education:</strong> {profile["education"]}</div>
+                    <div><strong>Profession:</strong> {profile["profession"]}</div>
+                    <div><strong>Location:</strong> {profile["location"]}</div>
+                    <div><strong>Preference:</strong> {profile["preference"]}</div>
+                </div>
+                </div>
+                """
+                st.markdown(card_content, unsafe_allow_html=True)
+        else:
+            st.write("No suitable matches found.")
 
 
 # query = st.sidebar.multiselect('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"25"] )
