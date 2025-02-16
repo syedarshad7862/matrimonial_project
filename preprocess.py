@@ -8,7 +8,7 @@ from pymongo import MongoClient
 # Load data
 # df = pd.read_csv("data/users_data.csv")
 
-def create_vector(mongodb_uri,db_name="matrimonial",collection_name="users"):
+def create_vector(mongodb_uri,db_name="matrimonial",collection_name="profiles_2"):
     connect = MongoClient(mongodb_uri)
     # database name
     db = connect[db_name]
@@ -34,11 +34,12 @@ def create_vector(mongodb_uri,db_name="matrimonial",collection_name="users"):
     #     df["location"].astype(str)
     # )
     df["text"] = (
-        df["age"].astype(str) + " " +
-        df["education"].astype(str) + " " +
-        df["profession"].astype(str) + " " +
-        df["location"].astype(str) + " " +
-        df["preference"].astype(str)
+        df["Age"].astype(str) + " " +
+        df["Education"].astype(str) + " " +
+        df["Profession"].astype(str) + " " +
+        df["Country"].astype(str) + " " +
+        df["Expectations"].astype(str) + " " +
+        df["Skin Tone"].astype(str)
     )
 
     # Convert the combined text to a list

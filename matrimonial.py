@@ -20,7 +20,7 @@ connect = MongoClient(MONGO_URI)
 db = connect["matrimonial"]
 
 # collection name or table
-collection = db['users']
+collection = db['profiles_2']
 
 # fetch data from Mongodb
 data = list(collection.find({}, {"_id":0}))

@@ -53,55 +53,56 @@ def search(query: str, top_k: int = 5):
     # pdb.set_trace()
     return indices[0], distances[0]
 
-def search_similar_profiles(df,selected_user, top_k=5):
-    """Find similar profiles based on FAISS similarity search."""
+# def search_similar_profiles(df,selected_user, top_k=5):
+#     """Find similar profiles based on FAISS similarity search."""
     
-        # Clear cache to prevent duplicate search results
-    st.cache_data.clear()
-    user_index = df[df["name"] == selected_user].index[0]
+#         # Clear cache to prevent duplicate search results
+#     st.cache_data.clear()
+#     user_index = df[df["Name"] == selected_user].index[0]
     
-    # Encode selected user's text into an embedding
-    query_embedding = model.encode([df.iloc[user_index]["text"]])
+#     # Encode selected user's text into an embedding
+#     query_embedding = model.encode([df.iloc[user_index]["text"]])
     
-    # Search similar users in FAISS
-    distances, indices = index.search(query_embedding, top_k + 1)  # +1 to exclude the user itself
+#     # Search similar users in FAISS
+#     distances, indices = index.search(query_embedding, top_k * 2)  # +1 to exclude the user itself
 
-    # Filter results: exclude the selected user and filter by gender
-    selected_gender = df.iloc[user_index]["gender"]
-    selected_age = int(df.iloc[user_index]["age"])  # Convert age to integer
-    opposite_gender = "Female" if selected_gender == "Male" else "Male"
+#     # Filter results: exclude the selected user and filter by gender
+#     selected_gender = df.iloc[user_index]["Gender"]
+#     selected_age = int(df.iloc[user_index]["Age"])  # Convert age to integer
+#     opposite_gender = "Female" if selected_gender == "Male" else "Male"
 
-    similar_profiles = [
-        i for i in indices[0] if df.iloc[i]["name"] != selected_user and df.iloc[i]["gender"] == opposite_gender
-    ]
+#     similar_profiles = [
+#         i for i in indices[0] if df.iloc[i]["Name"] != selected_user and df.iloc[i]["Gender"] == opposite_gender
+#     ]
     
-    # Convert selected users into a DataFrame
-    # similar_df = df.iloc[similar_profiles].copy()
+#     # Convert selected users into a DataFrame
+#     # similar_df = df.iloc[similar_profiles].copy()
 
-    # Convert ages to integer for comparison
-    # similar_df["age"] = similar_df["age"].astype(int)
+#     # Convert ages to integer for comparison
+#     # similar_df["age"] = similar_df["age"].astype(int)
 
-    # # **Age-Based Matching Logic**
-    # if selected_gender == "Male":
-    #     # Male users: Prefer younger or same age females, else go for older ones
-    #     filtered_df = similar_df[similar_df["age"] <= selected_age]
-    #     if filtered_df.empty:
-    #         filtered_df = similar_df[similar_df["age"] > selected_age]
+#     # # **Age-Based Matching Logic**
+#     # if selected_gender == "Male":
+#     #     # Male users: Prefer younger or same age females, else go for older ones
+#     #     filtered_df = similar_df[similar_df["age"] <= selected_age]
+#     #     if filtered_df.empty:
+#     #         filtered_df = similar_df[similar_df["age"] > selected_age]
 
-    # else:  # Female users
-    #     # Female users: Prefer older males, else go for younger ones
-    #     filtered_df = similar_df[similar_df["age"] > selected_age]
-    #     if filtered_df.empty:
-    #         filtered_df = similar_df[similar_df["age"] <= selected_age]
+#     # else:  # Female users
+#     #     # Female users: Prefer older males, else go for younger ones
+#     #     filtered_df = similar_df[similar_df["age"] > selected_age]
+#     #     if filtered_df.empty:
+#     #         filtered_df = similar_df[similar_df["age"] <= selected_age]
 
-    # Step 3: Sort by age (ascending for males, descending for females)
-    # if selected_gender == "Male":
-    #     filtered_df = filtered_df.sort_values(by="age", ascending=True)  # Younger first
-    # else:
-    #     filtered_df = filtered_df.sort_values(by="age", ascending=False)  # Older first
+#     # Step 3: Sort by age (ascending for males, descending for females)
+#     # if selected_gender == "Male":
+#     #     filtered_df = filtered_df.sort_values(by="age", ascending=True)  # Younger first
+#     # else:
+#     #     filtered_df = filtered_df.sort_values(by="age", ascending=False)  # Older first
 
-    # return filtered_df.head(top_k)  # Return top_k matches
-    return df.iloc[similar_profiles]  # Return top_k matches
+#     # return filtered_df.head(top_k)  # Return top_k matches
+#     result = df.iloc[similar_profiles].to_dict(orient="records") # return dictionary
+#     return df.iloc[similar_profiles],result  # Return top_k matches
 
 
 # using pandas and faiss
@@ -151,6 +152,39 @@ def search_similar_profiles(df,selected_user, top_k=5):
 #             st.warning("No matching profiles found.")
 #     else:
 #         st.warning("Please select at least one filter!")
+
+def search_similar_profiles(df, selected_user, top_k=5):
+    """Find similar profiles based on FAISS similarity search."""
+    st.cache_data.clear()
+    
+    user_index = df[df["Name"] == selected_user].index[0]
+    
+    # Encode selected user's text into an embedding
+    query_embedding = model.encode([df.iloc[user_index]["text"]])
+    
+    # Initial FAISS search with top_k
+    search_top_k = top_k
+    matched_profiles = []
+    
+    while len(matched_profiles) < top_k and search_top_k <= len(df):
+        distances, indices = index.search(query_embedding, search_top_k)
+
+        selected_gender = df.iloc[user_index]["Gender"]
+        opposite_gender = "Female" if selected_gender == "Male" else "Male"
+
+        # Filter out the same user and select opposite gender
+        filtered_indices = [
+            i for i in indices[0] 
+            if df.iloc[i]["Name"] != selected_user and df.iloc[i]["Gender"] == opposite_gender
+        ]
+        # Convert selected users into a DataFrame
+        matched_df = df.iloc[filtered_indices]
+        matched_profiles = df.iloc[filtered_indices].to_dict(orient="records")
+        
+        # If not enough matches, increase search range
+        search_top_k += top_k
+
+    return matched_df,matched_profiles[:top_k]  # Ensure final result size does not exceed top_k
 
 
 # filter using pandas
@@ -243,7 +277,7 @@ st.markdown(card_style, unsafe_allow_html=True)
 if df.empty:
     st.error("No user data found.")
 else:
-    options = ["Select a user"] + new_df["name"].tolist()
+    options = ["Select a user"] + new_df["Name"].tolist()
     # User dropdown for selecting profiles
     selected_user = st.sidebar.selectbox("Select a User Profile", options)
     print(options)
@@ -254,7 +288,7 @@ else:
     # st.dataframe(user_profile)
     if selected_user != "Select a user":
         # Run your search logic
-        user_profile = df[df["name"] == selected_user].iloc[0]
+        user_profile = df[df["Name"] == selected_user].iloc[0]
         st.write("### Selected User Profile:")
         # st.dataframe(user_profile)
         selected_profile = f"""
@@ -274,34 +308,45 @@ else:
     else:
         st.warning("Please select a user to find matches.")
 
-if st.sidebar.button("Show Profile"):
-    
-    if selected_user == "Select a user":
-        st.error("Please Select a username to proceed.")
-    else:
-            
-        similar_profiles = search_similar_profiles(df, selected_user,top_k)
+i = 1
+while i < 20:
+    # remove after testing
+    username = input("Enter UserName: ")
+    top = int(input("Enter Top value: "))
+    similar_profiles,result = search_similar_profiles(df, username,top)
+    print(similar_profiles)
+    print(result,len(result))
+    i += 1
+# pdb.set_trace()
 
-        if not similar_profiles.empty:
-            st.write("### Matching Profiles:")
-            for _, profile in similar_profiles.iterrows():
-                # Create a card for each profile
-                card_content = f"""
-                <div class="card">
-                <div class="card-title">{profile["name"]}</div>
-                <div class="card-content">
-                    <div><strong>Age:</strong> {profile["age"]}</div>
-                    <div><strong>Gender:</strong> {profile["gender"]}</div>
-                    <div><strong>Education:</strong> {profile["education"]}</div>
-                    <div><strong>Profession:</strong> {profile["profession"]}</div>
-                    <div><strong>Location:</strong> {profile["location"]}</div>
-                    <div><strong>Preference:</strong> {profile["preference"]}</div>
-                </div>
-                </div>
-                """
-                st.markdown(card_content, unsafe_allow_html=True)
-        else:
-            st.write("No suitable matches found.")
+# if st.sidebar.button("Show Profile"):
+    
+#     if selected_user == "Select a user":
+#         st.error("Please Select a username to proceed.")
+#     else:
+            
+#         similar_profiles = search_similar_profiles(df, selected_user,top_k)
+
+#         if not similar_profiles.empty:
+#             st.write("### Matching Profiles:")
+#             for _, profile in similar_profiles.iterrows():
+#                 # Create a card for each profile
+#                 card_content = f"""
+#                 <div class="card">
+#                 <div class="card-title">{profile["name"]}</div>
+#                 <div class="card-content">
+#                     <div><strong>Age:</strong> {profile["age"]}</div>
+#                     <div><strong>Gender:</strong> {profile["gender"]}</div>
+#                     <div><strong>Education:</strong> {profile["education"]}</div>
+#                     <div><strong>Profession:</strong> {profile["profession"]}</div>
+#                     <div><strong>Location:</strong> {profile["location"]}</div>
+#                     <div><strong>Preference:</strong> {profile["preference"]}</div>
+#                 </div>
+#                 </div>
+#                 """
+#                 st.markdown(card_content, unsafe_allow_html=True)
+#         else:
+#             st.write("No suitable matches found.")
 
 
 # query = st.sidebar.multiselect('Select according', [None,'Graduate','Under Graduate', 'Student','Saudi Arabia','19',"25"] )
